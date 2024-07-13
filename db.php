@@ -2,9 +2,9 @@
 
 class Database
 {
-    private $dsn = "mysql:host=localhost;dbname=php_oops_crud";
+    private $dsn = "mysql:host=127.0.0.1;port=  ;dbname=php_oops_crud";
     private $user = "root";
-    private $pass = "secret";
+    private $pass = "root";
     public $conn;
 
     public function __construct()
@@ -19,6 +19,7 @@ class Database
 
     public function insert($fname, $lname, $email, $phone)
     {
+        // var_dump($fname, $lname, $email, $phone);
         $sql = "INSERT INTO users (first_name, last_name, email, phone) VALUES (:fname, :lname, :email, :phone)";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute(['fname' => $fname, 'lname' => $lname, 'email' => $email, 'phone' => $phone]);
@@ -26,7 +27,7 @@ class Database
     }
 
     public function read()
-    {   
+    {
         $data = array();
         $sql = 'SELECT * FROM users';
         $stmt = $this->conn->prepare($sql);
@@ -38,29 +39,33 @@ class Database
         return $data;
     }
 
-    public function getUserById($id){
+    public function getUserById($id)
+    {
         $sql = "SELECT * FROM users WHERE id = :id";
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute(['id'=>$id]);
-        $result = $stmt ->fetch(PDO::FETCH_ASSOC);
-        return $result; 
+        $stmt->execute(['id' => $id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result;
     }
 
-    public function update($id,$fname, $lname, $email, $phone ){
-        $sql  = "UPDATE users SET first_name = :fname, last_name = :lname, email = :email, phone = :phone WHERE id = :id";
+    public function update($id, $fname, $lname, $email, $phone)
+    {
+        $sql = "UPDATE users SET first_name = :fname, last_name = :lname, email = :email, phone = :phone WHERE id = :id";
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute(['fname'=>$fname, 'lname'=>$lname, 'email'=>$email, 'phone'=>$phone, 'id'=>$id]);
+        $stmt->execute(['fname' => $fname, 'lname' => $lname, 'email' => $email, 'phone' => $phone, 'id' => $id]);
         return true;
     }
 
-    public function delete($id){
+    public function delete($id)
+    {
         $sql = "DELETE FROM users WHERE id = :id";
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute(['id'=>$id]);
+        $stmt->execute(['id' => $id]);
         return true;
     }
 
-    public function totalRowCount(){
+    public function totalRowCount()
+    {
         $sql = "SELECT * FROM users";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
