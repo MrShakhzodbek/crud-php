@@ -3,6 +3,7 @@
 require_once 'db.php';
 $db = new Database();
 
+// View Users
 if (isset($_POST['action']) && $_POST['action'] == 'view') {
     $output = '';
     $data = $db->read();
@@ -21,75 +22,97 @@ if (isset($_POST['action']) && $_POST['action'] == 'view') {
                         <tbody>';
         foreach ($data as $row) {
             $output .= '<tr class="text-center text-secondary">
-                                <td>' . $row['id'] . '</td>
-                                <td>' . $row['first_name'] . '</td>
-                                <td>' . $row['last_name'] . '</td>
-                                <td>' . $row['email'] . '</td>
-                                <td>' . $row['phone'] . '</td>
+                                <td>' . htmlspecialchars($row['id']) . '</td>
+                                <td>' . htmlspecialchars($row['first_name']) . '</td>
+                                <td>' . htmlspecialchars($row['last_name']) . '</td>
+                                <td>' . htmlspecialchars($row['email']) . '</td>
+                                <td>' . htmlspecialchars($row['phone']) . '</td>
                                 <td>
-                                        <a href="#" title="View Details" class="text-success infoBtn" id="' . $row['id'] . '"><i class="fas fa-info-circle fa-lg"></i></a>&nbsp; &nbsp;
-                                        <a href="#" title="Edit" class="text-primary editBtn" data-toggle="modal" data-target="#editModel" id="' . $row['id'] . '"><i class="fas fa-edit fa-lg"></i></a>&nbsp; &nbsp;
-                                        <a href="#" title="Delete" class="text-danger delBtn" id="' . $row['id'] . '"><i class="fas fa-trash-alt fa-lg"></i></a>
-                                    </td></tr>
-                            ';
+                                    <a href="#" title="View Details" class="text-success infoBtn" id="' . htmlspecialchars($row['id']) . '"><i class="fas fa-info-circle fa-lg"></i></a>&nbsp; &nbsp;
+                                    <a href="#" title="Edit" class="text-primary editBtn" data-toggle="modal" data-target="#editModel" id="' . htmlspecialchars($row['id']) . '"><i class="fas fa-edit fa-lg"></i></a>&nbsp; &nbsp;
+                                    <a href="#" title="Delete" class="text-danger delBtn" id="' . htmlspecialchars($row['id']) . '"><i class="fas fa-trash-alt fa-lg"></i></a>
+                                </td>
+                            </tr>';
         }
         $output .= '</tbody></table>';
         echo $output;
     } else {
-        echo '<h3 class="text-center text-secondary mt-5">:) No any Users in the Database!</h3>';
+        echo '<h3 class="text-center text-secondary mt-5">:) No Users in the Database!</h3>';
     }
 }
 
+// Insert User
 if (isset($_POST['action']) && $_POST['action'] == "insert") {
-    $fname = $_POST['fname'];
-    $lname = $_POST['lname'];
-    $email = $_POST['email'];
-    $phone = $_POST['phone'];
+    $fname = filter_input(INPUT_POST, 'fname', FILTER_SANITIZE_STRING);
+    $lname = filter_input(INPUT_POST, 'lname', FILTER_SANITIZE_STRING);
+    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+    $phone = filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_STRING);
 
-    $db->insert($fname, $lname, $email, $phone);
+    if ($db->insert($fname, $lname, $email, $phone)) {
+        echo 'User inserted successfully';
+    } else {
+        echo 'Failed to insert user';
+    }
 }
 
+// Get User by ID
 if (isset($_POST['edit_id'])) {
-    $id = $_POST['edit_id'];
+    $id = filter_input(INPUT_POST, 'edit_id', FILTER_SANITIZE_NUMBER_INT);
     $row = $db->getUserById($id);
+    echo json_encode($row);
 }
 
+// Update User
 if (isset($_POST['action']) && $_POST['action'] == "update") {
-    $id = $_POST['id'];
-    $fname = $_POST['$fname'];
-    $lname = $_POST['$lname'];
-    $email = $_POST['email'];
-    $phone = $_POST['phone'];
+    $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_NUMBER_INT);
+    $fname = filter_input(INPUT_POST, 'fname', FILTER_SANITIZE_STRING);
+    $lname = filter_input(INPUT_POST, 'lname', FILTER_SANITIZE_STRING);
+    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+    $phone = filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_STRING);
 
-    $db->update($id, $fname, $lname, $email, $phone);
+    if ($db->update($id, $fname, $lname, $email, $phone)) {
+        echo 'User updated successfully';
+    } else {
+        echo 'Failed to update user';
+    }
 }
+
+// Delete User
 if (isset($_POST['del_id'])) {
-    $id = $_POST['del_id'];
-    $db->delete($id);
+    $id = filter_input(INPUT_POST, 'del_id', FILTER_SANITIZE_NUMBER_INT);
+    if ($db->delete($id)) {
+        echo 'User deleted successfully';
+    } else {
+        echo 'Failed to delete user';
+    }
 }
 
+// Get User Info
 if (isset($_POST['info_id'])) {
-    $id = $_POST['info_id'];
+    $id = filter_input(INPUT_POST, 'info_id', FILTER_SANITIZE_NUMBER_INT);
     $row = $db->getUserById($id);
+    echo json_encode($row);
 }
 
+// Export to Excel
 if (isset($_GET['export']) && $_GET['export'] == "excel") {
     header("Content-Type: application/xls");
-    header("Content-Disposition: attachment; filename = users.xls");
+    header("Content-Disposition: attachment; filename=users.xls");
     header("Pragma: no-cache");
     header("Expires: 0");
 
     $data = $db->read();
     echo '<table border="1">';
-    echo '<tr><th>ID </th><th>First Name</th> <th>Last Name</th> <th>Email</th><th>Phone</th></tr>';
+    echo '<tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Email</th><th>Phone</th></tr>';
     foreach ($data as $row) {
         echo '<tr>
-                <td>' . $row['id'] . '</td>
-                <td>' . $row['first_name'] . '</td>
-                <td>' . $row['last_name'] . '</td>
-                <td>' . $row['email'] . '</td>
-                <td>' . $row['phone'] . '</td>
+                <td>' . htmlspecialchars($row['id']) . '</td>
+                <td>' . htmlspecialchars($row['first_name']) . '</td>
+                <td>' . htmlspecialchars($row['last_name']) . '</td>
+                <td>' . htmlspecialchars($row['email']) . '</td>
+                <td>' . htmlspecialchars($row['phone']) . '</td>
         </tr>';
     }
     echo '</table>';
 }
+?>
